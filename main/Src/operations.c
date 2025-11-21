@@ -1,7 +1,10 @@
-void Op_GoProgram()
+#include "operations.h"
+#include "stm32f1xx_hal.h"
+
+void Op_GoProgram(uint32_t addr)
 {
   __disable_irq();
-  ((void (*)())(addr_j+4))();
+  ((void (*)())(addr+4))();
 }
 
 void Op_ReadMem(uint32_t addr, uint8_t *pbuff, uint32_t size)
@@ -14,6 +17,7 @@ void Op_ReadMem(uint32_t addr, uint8_t *pbuff, uint32_t size)
 
 void Op_WriteMem(uint32_t addr, const uint8_t *pbuff, uint32_t size)
 {
+  
 }
 
 void Op_WriteFlash(uint32_t addr, const uint8_t *pbuff, uint32_t size)

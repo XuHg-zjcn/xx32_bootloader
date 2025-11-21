@@ -2,7 +2,9 @@
  * a STM32 AN3155 compable UART protocol implement
  *******************************************************/
 #include "command_stm32.h"
+#include "stm32f1xx_hal.h"
 #include "uart.h"
+#include "operations.h"
 
 #define CMD_GET          (0x00)
 #define CMD_GET_VRPV     (0x01)
@@ -19,6 +21,7 @@
 
 #define ACK              (0x79)
 #define NACK             (0x1F)
+#define IsRDP()          (0)
 
 const uint8_t bl_ver = 0x10;
 const uint16_t pid = 0x1234;
@@ -26,14 +29,12 @@ const uint16_t pid = 0x1234;
 #define RXBYTE()          UART_RxByte()
 #define RXBYTE_TIMEOUT()  UART_RxByte_Timeout(10)
 #define TXBYTE(byte)      UART_TxByte(byte)
-#define TXBYTES(p, size)  UART_TXBytes(p, sizes)
+#define TXBYTES(p, size)  UART_TxBytes(p, size)
 
 typedef struct{
   uint8_t cmdcode;
   void (*cmdfunc)();
 }cmditem;
-
-const cmditem[];
 
 uint8_t buff[256];
 
@@ -70,16 +71,8 @@ uint32_t read_32b_bigend(uint8_t *p)
   return data;
 }
 
-void cmdfunc_get()
-{
-  TXBYTE(ACK);
-  TXBYTE(sizeof(cmditem)/sizeof(cmditem[0]));
-  TXBYTE(bl_ver);
-  for(int i=0;i<sizeof(cmditem)/sizeof(cmditem[0]);i++){
-    TXBYTE(cmditem[i].cmdcode);
-  }
-  TXBYTE(ACK);
-}
+//此函数依赖cmdlist
+void cmdfunc_get();
 
 void cmdfunc_get_vrpv()
 {
@@ -94,8 +87,8 @@ void cmdfunc_get_id()
 {
   TXBYTE(ACK);
   TXBYTE(1);
-  TXBYTE((PID>>8)&0xff);
-  TXBYTE(PID&0xff);
+  TXBYTE((pid>>8)&0xff);
+  TXBYTE(pid&0xff);
   TXBYTE(ACK);
 }
 
@@ -127,6 +120,8 @@ void cmdfunc_read_mem()
 
 void cmdfunc_go()
 {
+  uint8_t addr_data[4];
+  uint32_t addr;
   if(IsRDP()){
     TXBYTE(NACK);
     return;
@@ -146,6 +141,8 @@ void cmdfunc_go()
 
 void cmdfunc_write_mem()
 {
+  uint8_t addr_data[4];
+  uint32_t addr;
   if(IsRDP()){
     TXBYTE(NACK);
     return;
@@ -179,15 +176,26 @@ void cmdfunc_erase_mem()
   }
 }
 
-const cmditem[] = {
+const cmditem cmdlist[] = {
   {CMD_GET,       cmdfunc_get},
   {CMD_GET_VRPV,  cmdfunc_get_vrpv},
   {CMD_GET_ID,    cmdfunc_get_id},
   {CMD_READ_MEM,  cmdfunc_read_mem},
   {CMD_GO,        cmdfunc_go},
   {CMD_WRITE_MEM, cmdfunc_write_mem},
-  {CMD_ERASE_MEM, cmdfunc_erase_mem}
+  {CMD_ERASE,     cmdfunc_erase_mem}
 };
+
+void cmdfunc_get()
+{
+  TXBYTE(ACK);
+  TXBYTE(sizeof(cmdlist)/sizeof(cmdlist[0]));
+  TXBYTE(bl_ver);
+  for(int i=0;i<sizeof(cmdlist)/sizeof(cmdlist[0]);i++){
+    TXBYTE(cmdlist[i].cmdcode);
+  }
+  TXBYTE(ACK);
+}
 
 void command_stm32_proc()
 {
@@ -200,6 +208,11 @@ void command_stm32_proc()
     if(byte1^byte2 != 0xff){
       TXBYTE(NACK);
     }
-    for(int i=0;i<)
+    for(int i=0;i<sizeof(cmdlist)/sizeof(cmdlist[0]);i++){
+      if(cmdlist[i].cmdcode == byte1){
+	cmdlist[i].cmdfunc();
+	break;
+      }
+    }
   }
 }

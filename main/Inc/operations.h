@@ -1,7 +1,9 @@
 #ifndef OPERATIONS_H
 #define OPERATIONS_H
 
-void Op_GoProgram();
+#include <stdint.h>
+
+void Op_GoProgram(uint32_t addr);
 void Op_ReadMem(uint32_t addr, uint8_t *pbuff, uint32_t size);
 void Op_WriteMem(uint32_t addr, const uint8_t *pbuff, uint32_t size);
 void Op_WriteFlash(uint32_t addr, const uint8_t *pbuff, uint32_t size);
