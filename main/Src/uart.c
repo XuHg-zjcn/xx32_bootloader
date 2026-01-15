@@ -15,6 +15,7 @@
 void UART_Init()
 {
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
   /* Configure Tx Pin as : Alternate function, High Speed, Push pull, Pull up */
   LL_GPIO_SetPinMode(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_MODE_ALTERNATE);
   LL_GPIO_SetPinSpeed(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_SPEED_FREQ_HIGH);
@@ -30,6 +31,11 @@ void UART_Init()
   LL_USART_ConfigCharacter(USARTx_INSTANCE, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
   LL_USART_SetBaudRate(USARTx_INSTANCE, SystemCoreClock, 115200);
   LL_USART_Enable(USARTx_INSTANCE);
+}
+
+void UART_Measure_Baud()
+{
+  //TODO: implement here
 }
 
 uint8_t UART_RxByte()

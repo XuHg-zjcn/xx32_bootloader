@@ -20,7 +20,7 @@ TOP_DIR = .
 DEV_DIR = STM32F103
 COM_DIR = common
 TOOL_DIR = $(TOP_DIR)/tools
-MODEL = STM32F103C8T6
+MODEL = STM32F103C6T6
 
 sinclude $(TOOL_DIR)/conf.mk
 

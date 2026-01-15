@@ -49,7 +49,9 @@ void     SystemClock_Config(void);
 int main(void)
 {
   /* Configure the system clock to 72 MHz */
-  SystemClock_Config();
+  //SystemClock_Config();
+  SystemCoreClockUpdate();
+  LL_Init1msTick(SystemCoreClock);
 
   /* Add your application code here */
   UART_Init();
