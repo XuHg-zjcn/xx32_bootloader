@@ -53,8 +53,13 @@ int main(void)
   SystemCoreClockUpdate();
   LL_Init1msTick(SystemCoreClock);
 
-  /* Add your application code here */
+  //Init LED
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOC);
+  LL_GPIO_SetPinMode(GPIOC, LL_GPIO_PIN_13, LL_GPIO_MODE_OUTPUT);
+  LL_GPIO_SetPinOutputType(GPIOC, LL_GPIO_PIN_13, LL_GPIO_OUTPUT_PUSHPULL);
+  LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_13);
   UART_Init();
+  LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13); //LED on
   command_stm32_proc();
   
   /* Infinite loop */

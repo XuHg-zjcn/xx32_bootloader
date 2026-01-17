@@ -199,6 +199,7 @@ void cmdfunc_get()
 
 void command_stm32_proc()
 {
+  TXBYTE(ACK);
   while(1){
     uint8_t byte1 = RXBYTE();
     uint8_t byte2 = RXBYTE_TIMEOUT();

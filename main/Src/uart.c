@@ -2,6 +2,7 @@
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_usart.h"
 #include "stm32f1xx_hal.h"
+#include "measure_baud.h"
 
 #define USARTx_INSTANCE     (USART1)
 #define USARTx_TX_GPIO_PORT (GPIOA)
@@ -15,27 +16,26 @@
 void UART_Init()
 {
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
+  //LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
   /* Configure Tx Pin as : Alternate function, High Speed, Push pull, Pull up */
   LL_GPIO_SetPinMode(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_MODE_ALTERNATE);
   LL_GPIO_SetPinSpeed(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_SPEED_FREQ_HIGH);
   LL_GPIO_SetPinOutputType(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_OUTPUT_PUSHPULL);
-  LL_GPIO_SetPinPull(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_PULL_UP);
+  //LL_GPIO_SetPinPull(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_PULL_UP);
 
   /* Configure Rx Pin as : Input Floating function, High Speed, Pull up */
-  LL_GPIO_SetPinMode(USARTx_RX_GPIO_PORT, USARTx_RX_PIN, LL_GPIO_MODE_FLOATING);
-  LL_GPIO_SetPinSpeed(USARTx_RX_GPIO_PORT, USARTx_RX_PIN, LL_GPIO_SPEED_FREQ_HIGH);
+  LL_GPIO_SetPinMode(USARTx_RX_GPIO_PORT, USARTx_RX_PIN, LL_GPIO_MODE_INPUT);
+  //Don't using LL_GPIO_SetPinSpeed, it will turn pin to output mode
+  //LL_GPIO_SetPinSpeed(USARTx_TX_GPIO_PORT, USARTx_TX_PIN, LL_GPIO_SPEED_FREQ_HIGH);
   LL_GPIO_SetPinPull(USARTx_RX_GPIO_PORT, USARTx_RX_PIN, LL_GPIO_PULL_UP);
 
+  LL_USART_Disable(USARTx_INSTANCE);
+  uint32_t brr = MB_Measure_Baud();
+  
+  USARTx_INSTANCE->BRR = brr;
   LL_USART_SetTransferDirection(USARTx_INSTANCE, LL_USART_DIRECTION_TX_RX);
   LL_USART_ConfigCharacter(USARTx_INSTANCE, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
-  LL_USART_SetBaudRate(USARTx_INSTANCE, SystemCoreClock, 115200);
   LL_USART_Enable(USARTx_INSTANCE);
-}
-
-void UART_Measure_Baud()
-{
-  //TODO: implement here
 }
 
 uint8_t UART_RxByte()

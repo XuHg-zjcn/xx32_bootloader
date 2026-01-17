@@ -2,7 +2,7 @@
 import serial
 import time
 
-s = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.1)
+s = serial.Serial('/dev/ttyUSB0', 57600, timeout=0.1)
 s.write(b'\x7f')
 print(s.read(10))
 for i in range(100):
