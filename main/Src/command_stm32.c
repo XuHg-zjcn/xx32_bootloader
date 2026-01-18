@@ -202,12 +202,13 @@ void command_stm32_proc()
   TXBYTE(ACK);
   while(1){
     uint8_t byte1 = RXBYTE();
-    uint8_t byte2 = RXBYTE_TIMEOUT();
+    int byte2 = RXBYTE_TIMEOUT();
     if(byte2 < 0){
       continue;
     }
-    if(byte1^byte2 != 0xff){
+    if((byte1^byte2) != 0xff){
       TXBYTE(NACK);
+      continue;
     }
     for(int i=0;i<sizeof(cmdlist)/sizeof(cmdlist[0]);i++){
       if(cmdlist[i].cmdcode == byte1){

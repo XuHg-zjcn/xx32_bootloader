@@ -21,6 +21,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stm32f1xx_hal.h"
 #include "uart.h"
 #include "command_stm32.h"
 
@@ -51,7 +52,7 @@ int main(void)
   /* Configure the system clock to 72 MHz */
   //SystemClock_Config();
   SystemCoreClockUpdate();
-  LL_Init1msTick(SystemCoreClock);
+  HAL_Init();
 
   //Init LED
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOC);

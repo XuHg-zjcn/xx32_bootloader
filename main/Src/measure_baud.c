@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "stm32f1xx_hal.h"
 #include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_tim.h"
 #include "stm32f1xx_ll_gpio.h"
@@ -29,16 +30,12 @@ void MB_TIMInit()
 
 void MB_Wait_Idle()
 {
-  uint32_t tick_count = 20;
-  ((void)(SysTick->CTRL));
+  uint32_t tick_end = HAL_GetTick() + 20;
   //wait to high level enough time
-  while (tick_count) {
+  while (HAL_GetTick() < tick_end) {
     if(!LL_GPIO_IsInputPinSet(GPIOA, LL_GPIO_PIN_10)){
-      tick_count = 20;
+      tick_end = HAL_GetTick() + 20;
       continue;
-    }
-    if((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) != 0U){
-      tick_count--;
     }
   }
 }
@@ -102,7 +99,7 @@ int MB_Measure(){
       return -2;
     }
     int e = td2 - tdm*7;
-    if(abs(e) > (td1+td3)/8){
+    if(abs(e) > (td1+td3)/4){
       return -2;
     }
     return (t_edges[2]-t_edges[0])/8;
