@@ -37,8 +37,8 @@
 #define NACK             (0x1F)
 #define IsRDP()          (0)
 
-const uint8_t bl_ver = 0x10;
-const uint16_t pid = 0x1234;
+const uint8_t bl_ver = 0x01;  //自定义版本，用于测试
+const uint16_t pid = 0x0412;  //STM32F10xxx 小容量
 
 #define RXBYTE()          UART_RxByte()
 #define RXBYTE_TIMEOUT()  UART_RxByte_Timeout(10)
@@ -92,8 +92,8 @@ void cmdfunc_get_vrpv()
 {
   TXBYTE(ACK);
   TXBYTE(bl_ver);
-  //TXBYTE();
-  //TXBYTE();
+  TXBYTE(0x00);
+  TXBYTE(0x00);
   TXBYTE(ACK);
 }
 
