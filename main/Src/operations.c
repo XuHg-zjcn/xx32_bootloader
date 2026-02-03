@@ -16,11 +16,21 @@
  ************************************************************************/
 #include "operations.h"
 #include "stm32f1xx_hal.h"
+#include "stm32f1xx_ll_rcc.h"
 
 void Op_GoProgram(uint32_t addr)
 {
   __disable_irq();
-  ((void (*)())(addr+4))();
+  LL_RCC_WriteReg(APB2ENR, 0);
+  LL_RCC_WriteReg(APB1ENR, 0);
+  LL_RCC_WriteReg(AHBENR, RCC_AHBENR_FLITFEN|RCC_AHBENR_SRAMEN);
+  SysTick->CTRL = 0;
+  SCB->VTOR = addr;
+  uint32_t new_sp = *((uint32_t *)(addr));
+  uint32_t new_pc = *((uint32_t *)(addr+4));
+  __enable_irq();
+  __set_MSP(new_sp);
+  ((void (*)(void))(new_pc))();
 }
 
 void Op_ReadMem(uint32_t addr, uint8_t *pbuff, uint32_t size)

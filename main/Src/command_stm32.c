@@ -149,6 +149,7 @@ void cmdfunc_go()
   }else{
     addr = read_32b_bigend(addr_data);
     TXBYTE(ACK);
+    UART_Wait_TXE_TC();
     Op_GoProgram(addr);
   }
 }
@@ -224,11 +225,16 @@ void command_stm32_proc()
       TXBYTE(NACK);
       continue;
     }
+    _Bool found = 0;
     for(int i=0;i<sizeof(cmdlist)/sizeof(cmdlist[0]);i++){
       if(cmdlist[i].cmdcode == byte1){
 	cmdlist[i].cmdfunc();
+	found = 1;
 	break;
       }
+    }
+    if(!found){
+      TXBYTE(NACK);
     }
   }
 }
