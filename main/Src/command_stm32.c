@@ -110,20 +110,23 @@ void cmdfunc_read_mem()
 {
   uint8_t addr_data[4];
   uint32_t addr;
+  //检查读保护
   if(IsRDP()){
     TXBYTE(NACK);
     return;
   }
   TXBYTE(ACK);
+  //接收地址和校验和
   if(recv_data_and_cs(4, addr_data, 0) < 0){
     TXBYTE(NACK);
     return;
   }
-  TXBYTE(ACK);
   addr = read_32b_bigend(addr_data);
-  uint8_t byte1 = RXBYTE_TIMEOUT();
-  uint8_t byte2 = RXBYTE_TIMEOUT();
-  if(byte1^byte2 != 0xff){
+  TXBYTE(ACK);
+  //接收需要读取的字节数和校验字节（补码）
+  int byte1 = RXBYTE_TIMEOUT();
+  int byte2 = RXBYTE_TIMEOUT();
+  if((byte1 < 0) || (byte2 < 0) || ((byte1^byte2) != 0xff)){
     TXBYTE(NACK);
     return;
   }
@@ -158,22 +161,27 @@ void cmdfunc_write_mem()
 {
   uint8_t addr_data[4];
   uint32_t addr;
+  //检查读保护
   if(IsRDP()){
     TXBYTE(NACK);
     return;
   }
   TXBYTE(ACK);
+  //接收地址和校验和
   int ret = recv_data_and_cs(4, addr_data, 0);
-  TXBYTE(ACK);
   if(ret < 0){
     TXBYTE(NACK);
     return;
   }
   addr = read_32b_bigend(addr_data);
   TXBYTE(ACK);
-  uint8_t count = RXBYTE();
-  recv_data_and_cs(count+1, buff, count);
+  //接收字节数和数据
+  int count = RXBYTE();
+  if(recv_data_and_cs(count+1, buff, count) != 0){
+    TXBYTE(NACK);
+  }
   Op_WriteMemFlash(addr, buff, count+1);
+  TXBYTE(ACK);
 }
 
 void cmdfunc_erase_mem()
@@ -183,11 +191,20 @@ void cmdfunc_erase_mem()
     return;
   }
   TXBYTE(ACK);
-  uint8_t count = RXBYTE();
+  int count = RXBYTE();
   if(count == 0xff){
-    //全局擦除
+    //目前不支持全局擦除
+    TXBYTE(NACK);
   }else{
     int ret = recv_data_and_cs(count+1, buff, count);
+    if(ret < 0){
+      TXBYTE(NACK);
+      return;
+    }
+    for(int i=0;i<=count;i++){
+      Op_EraseFlash(0x08000000+((uint32_t)(buff[i]))*1024);
+    }
+    TXBYTE(ACK);
   }
 }
 
