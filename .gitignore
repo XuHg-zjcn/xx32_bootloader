@@ -6,7 +6,7 @@
 # without any warranty.
 
 # build file
-/obj/
+obj/
 __pycache__/
 
 # vscode
