@@ -32,6 +32,9 @@
 #include "main.h"
 #include "uart.h"
 #include "command_stm32.h"
+#include "py32f0xx_ll_rcc.h"
+#include "py32f0xx_ll_utils.h"
+#include "py32f0xx_ll_system.h"
 #include "py32f0xx_ll_bus.h"
 #include "py32f0xx_ll_gpio.h"
 
@@ -48,9 +51,9 @@ static void APP_SystemClockConfig(void);
   */
 int main(void)
 {
-  /* Reset of all peripherals, Initializes the Systick. */
-  HAL_Init();
-  
+  LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_SYSCFG);
+  LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
+
   /* Configure the system clock */
   APP_SystemClockConfig(); 
 
@@ -72,6 +75,21 @@ int main(void)
   }
 }
 
+/*
+ * 此函数由`LL_InitTick`衍生，添加了中断
+ */
+static void InitTick_WithINT(uint32_t HCLKFrequency, uint32_t Ticks)
+{
+  /* Configure the SysTick to have interrupt in 1ms time base */
+  SysTick->LOAD  = (uint32_t)((HCLKFrequency / Ticks) - 1UL);  /* set reload register */
+  SysTick->VAL   = 0UL;                                       /* Load the SysTick Counter Value */
+  SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |
+	           SysTick_CTRL_TICKINT_Msk |                 /* Enable Tick interrupt */
+                   SysTick_CTRL_ENABLE_Msk;                   /* Enable the Systick Timer */
+  NVIC_SetPriority(SysTick_IRQn, 0);
+  NVIC_EnableIRQ(SysTick_IRQn);
+}
+
 /**
   * @brief  System Clock Configuration
   * @param  None
@@ -79,34 +97,33 @@ int main(void)
   */
 static void APP_SystemClockConfig(void)
 {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  /* Enable HSI */
+  LL_RCC_HSI_Enable();
 
-  /* Oscillator Configuration */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE | RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_LSI; /* Select oscillators HSE,HSI,LSI */
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;                          /* Enable HSI */
-  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;                          /* HSI not divided */
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_24MHz;  /* Configure HSI clock as 8MHz */
-  RCC_OscInitStruct.HSEState = RCC_HSE_OFF;                         /* Disable HSE */
-  /*RCC_OscInitStruct.HSEFreq = RCC_HSE_16_32MHz;*/
-  RCC_OscInitStruct.LSIState = RCC_LSI_OFF;                         /* Disable LSI */
-
-  /* Configure oscillators */
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  LL_RCC_HSI_SetCalibFreq(LL_RCC_HSICALIBRATION_24MHz);
+  while(LL_RCC_HSI_IsReady() != 1)
   {
-    APP_ErrorHandler();
   }
 
-  /* Clock source configuration */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1; /* Select clock types HCLK, SYSCLK, PCLK1 */
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI; /* Select HSI as the system clock */
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;     /* AHB clock not divide */
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;      /* APB clock not divided */
-  /* Configure clock source */
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  /* Set AHB prescaler */
+  LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
+
+  /* Configure HSISYS as system clock source */
+  LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_HSISYS);
+  while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSISYS)
   {
-    APP_ErrorHandler();
   }
+
+  /* Set FLASH Latency */
+  LL_FLASH_SetLatency(LL_FLASH_LATENCY_0);
+
+  /* Set APB1 prescaler*/
+  LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_1);
+
+  InitTick_WithINT(24000000, 1000U);
+
+  /* Update system clock global variable SystemCoreClock (can also be updated by calling SystemCoreClockUpdate function) */
+  LL_SetSystemCoreClock(24000000);
 }
 
 /**
