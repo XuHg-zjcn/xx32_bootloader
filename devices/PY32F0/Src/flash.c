@@ -121,15 +121,16 @@ static void FLASH_Program_Page(uint32_t Address, uint32_t * DataAddress)
   __set_PRIMASK(primask_bit);
 }
 
-HAL_StatusTypeDef FLASH_PageErase_Block(uint32_t PageAddress)
+HAL_StatusTypeDef FLASH_PageErase_Block(uint32_t PageAddress, uint32_t count)
 {
+  uint32_t Address_end = PageAddress + 128U*count;
   HAL_StatusTypeDef status = HAL_ERROR;
   status = FLASH_WaitForLastOperation((uint32_t)FLASH_TIMEOUT_VALUE);
-  if(status != HAL_OK){
-    return status;
+  while((PageAddress < Address_end) && (status == HAL_OK)){
+    FLASH_PageErase(PageAddress);
+    PageAddress += 128U;
+    status = FLASH_WaitForLastOperation((uint32_t)FLASH_TIMEOUT_VALUE);
   }
-  FLASH_PageErase(PageAddress);
-  status = FLASH_WaitForLastOperation((uint32_t)FLASH_TIMEOUT_VALUE);
   return status;
 }
 

@@ -20,7 +20,7 @@
 
 #include "py32f0xx_hal.h"
 
-HAL_StatusTypeDef FLASH_PageErase_Block(uint32_t PageAddress);
+HAL_StatusTypeDef FLASH_PageErase_Block(uint32_t PageAddress, uint32_t count);
 HAL_StatusTypeDef FLASH_PageProgram_Block(uint32_t Address, uint32_t * DataAddress);
 
 #endif
