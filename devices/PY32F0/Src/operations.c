@@ -54,10 +54,7 @@ void Op_EraseFlash(uint32_t addr)
   FLASH_EraseInitTypeDef EraseInitStruct;
   uint32_t PAGEError = 0;
   HAL_FLASH_Unlock();
-  EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGEERASE;
-  EraseInitStruct.PageAddress = addr;
-  EraseInitStruct.NbPages     = 1;
-  HAL_FLASH_Erase(&EraseInitStruct, &PAGEError);
+  FLASH_PageErase_Block(addr);
   HAL_FLASH_Lock();
 }
 
@@ -71,7 +68,7 @@ void Op_WriteFlash(uint32_t addr, const uint8_t *pbuff, uint32_t size)
   }
   HAL_FLASH_Unlock();
   while(size){
-    HAL_FLASH_Program(FLASH_TYPEPROGRAM_PAGE, addr, (uint32_t *)pbuff);
+    FLASH_PageProgram_Block(addr, (uint32_t *)pbuff);
     addr += 128;
     pbuff += 128;
     size -= 128;
