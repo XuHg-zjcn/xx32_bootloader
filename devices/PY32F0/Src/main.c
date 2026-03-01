@@ -40,6 +40,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+extern CmdIntface *pcmdif;
+extern CmdIntface cmdintface_uart;
 /* Private user code ---------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -65,6 +67,7 @@ int main(void)
   LL_GPIO_SetPinPull(GPIOA, LL_GPIO_PIN_0, LL_GPIO_PULL_NO);
 
   UART_Init();
+  pcmdif = &cmdintface_uart;
   command_stm32_proc();
 
   int i=0;

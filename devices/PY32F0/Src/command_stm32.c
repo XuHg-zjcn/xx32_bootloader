@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  ************************************************************************/
 #include "command_stm32.h"
-#include "uart.h"
 #include "operations.h"
 #include "py32f0xx_ll_gpio.h"
 
@@ -40,10 +39,12 @@
 const uint8_t bl_ver = 0x01;  //自定义版本，用于测试
 const uint16_t pid = 0x0440;  //STM32F10xxx 小容量
 
-#define RXBYTE()          UART_RxByte()
-#define RXBYTE_TIMEOUT()  UART_RxByte_Timeout(10)
-#define TXBYTE(byte)      UART_TxByte(byte)
-#define TXBYTES(p, size)  UART_TxBytes(p, size)
+CmdIntface *pcmdif;
+
+#define RXBYTE()          (pcmdif->RxByte())
+#define RXBYTE_TIMEOUT()  (pcmdif->RxByte_timeout(10))
+#define TXBYTE(byte)      (pcmdif->TxByte(byte))
+#define TXBYTES(p, size)  (pcmdif->TxBytes(p, size))
 
 typedef struct{
   uint8_t cmdcode;
@@ -231,6 +232,9 @@ void cmdfunc_get()
 
 void command_stm32_proc()
 {
+  if(!pcmdif){
+    return;
+  }
   TXBYTE(ACK);
   while(1){
     uint8_t byte1 = RXBYTE();

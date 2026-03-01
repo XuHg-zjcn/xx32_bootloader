@@ -15,9 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  ************************************************************************/
+#include "uart.h"
 #include "py32f0xx_ll_bus.h"
 #include "py32f0xx_ll_gpio.h"
 #include "py32f0xx_ll_usart.h"
+#include "command_stm32.h"
 #include "measure_baud.h"
 
 #define USARTx_INSTANCE     (USART1)
@@ -31,6 +33,13 @@
 
 //ref:
 //STM32CubeF1/Projects/STM32F103RB-Nucleo/Examples_LL/USART/USART_Communication_Tx
+
+const CmdIntface cmdintface_uart = {
+  .RxByte = UART_RxByte,
+  .RxByte_timeout = UART_RxByte_Timeout,
+  .TxByte = UART_TxByte,
+  .TxBytes = UART_TxBytes
+};
 
 void UART_Init()
 {
