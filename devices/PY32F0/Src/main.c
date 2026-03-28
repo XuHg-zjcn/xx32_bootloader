@@ -31,6 +31,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "uart.h"
+#include "rs485.h"
 #include "command_stm32.h"
 #include "py32f0xx_ll_rcc.h"
 #include "py32f0xx_ll_utils.h"
@@ -42,6 +43,7 @@
 /* Private variables ---------------------------------------------------------*/
 extern CmdIntface *pcmdif;
 extern CmdIntface cmdintface_uart;
+extern CmdIntface cmdintface_rs485m;
 /* Private user code ---------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -66,8 +68,9 @@ int main(void)
   LL_GPIO_SetPinOutputType(GPIOA, LL_GPIO_PIN_0, LL_GPIO_OUTPUT_PUSHPULL);
   LL_GPIO_SetPinPull(GPIOA, LL_GPIO_PIN_0, LL_GPIO_PULL_NO);
 
-  UART_Init();
-  pcmdif = &cmdintface_uart;
+  //UART_Init();
+  RS485_Init();
+  pcmdif = &cmdintface_rs485m;
   command_stm32_proc();
 
   int i=0;

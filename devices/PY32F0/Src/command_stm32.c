@@ -42,7 +42,7 @@ const uint16_t pid = 0x0440;  //STM32F10xxx 小容量
 CmdIntface *pcmdif;
 
 #define RXBYTE()          (pcmdif->RxByte())
-#define RXBYTE_TIMEOUT()  (pcmdif->RxByte_timeout(10))
+#define RXBYTE_TIMEOUT()  (pcmdif->RxByte_timeout(1000))
 #define TXBYTE(byte)      (pcmdif->TxByte(byte))
 #define TXBYTES(p, size)  (pcmdif->TxBytes(p, size))
 
