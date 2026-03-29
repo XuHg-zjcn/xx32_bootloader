@@ -22,7 +22,7 @@
 
 void UART_Init();
 uint8_t UART_RxByte();
-int UART_RxByte_Timeout(uint32_t timeout);
+int UART_RxBytes_Timeout(uint8_t *pBuf, uint32_t size, uint32_t timeout0);
 void UART_TxByte(uint8_t byte);
 void UART_TxBytes(uint8_t *p, uint32_t size);
 void UART_Wait_TXE_TC();

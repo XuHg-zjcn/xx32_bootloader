@@ -35,10 +35,11 @@
 #define TXD_LL_GPIO_AF    LL_GPIO_AF_1
 #define USARTx            USART1
 #define BAUDRATE          (500000)
+#define TIMEOUT1          (3)
 
 const CmdIntface cmdintface_rs485m = {
   .RxByte = RS485m_RxByte,
-  .RxByte_timeout = RS485m_RxByte_Timeout,
+  .RxBytes_timeout = RS485m_RxBytes_Timeout,
   .TxByte = RS485m_TxByte,
   .TxBytes = RS485m_TxBytes
 };
@@ -108,7 +109,7 @@ int RS485_Send_manchester(const uint8_t *p, uint32_t size)
   LL_GPIO_ResetOutputPin(TR_GPIO_PORT, TR_LL_GPIO_PIN);
 }
 
-int RS485_Recv_manchester(uint8_t *p, uint16_t size, uint32_t timeout0, uint32_t timeout1)
+int RS485m_RxBytes_Timeout(uint8_t *p, uint32_t size, uint32_t timeout0)
 {
   uint8_t encH, encL, byte;
   uint16_t enc;
@@ -121,14 +122,14 @@ int RS485_Recv_manchester(uint8_t *p, uint16_t size, uint32_t timeout0, uint32_t
     }else{
       break;
     }
-    ts_timeout = HAL_GetTick() + timeout1;
+    ts_timeout = HAL_GetTick() + TIMEOUT1;
     while(!LL_USART_IsActiveFlag_RXNE(USARTx) && (HAL_GetTick() < ts_timeout));
     if(LL_USART_IsActiveFlag_RXNE(USARTx)){
       encH = LL_USART_ReceiveData8(USARTx);
     }else{
       break;
     }
-    ts_timeout = HAL_GetTick() + timeout1;
+    ts_timeout = HAL_GetTick() + TIMEOUT1;
     enc = (encL) | (encH << 8U);
     if(((enc ^ (enc >> 1U))&0x5555) != 0x5555){
       return -1;
@@ -149,21 +150,10 @@ uint8_t RS485m_RxByte()
 {
   uint8_t byte;
   while(1){
-    int stat = RS485_Recv_manchester(&byte, 1, 1000, 3);
+    int stat = RS485m_RxBytes_Timeout(&byte, 1, 1000);
     if(stat == 1){
       return byte;
     }
-  }
-}
-
-int RS485m_RxByte_Timeout(uint32_t timeout)
-{
-  uint8_t byte;
-  int stat = RS485_Recv_manchester(&byte, 1, timeout, 3);
-  if(stat == 1){
-    return byte;
-  }else{
-    return -1;
   }
 }
 

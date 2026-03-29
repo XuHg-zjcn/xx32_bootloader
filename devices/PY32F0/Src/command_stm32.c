@@ -42,7 +42,7 @@ const uint16_t pid = 0x0440;  //STM32F10xxx 小容量
 CmdIntface *pcmdif;
 
 #define RXBYTE()          (pcmdif->RxByte())
-#define RXBYTE_TIMEOUT()  (pcmdif->RxByte_timeout(1000))
+#define RXBYTES_TIMEOUT(p, size) (pcmdif->RxBytes_timeout(p, size, 1000))
 #define TXBYTE(byte)      (pcmdif->TxByte(byte))
 #define TXBYTES(p, size)  (pcmdif->TxBytes(p, size))
 
@@ -51,25 +51,18 @@ typedef struct{
   void (*cmdfunc)();
 }cmditem;
 
-uint8_t buff[256];
+uint8_t buff[260];
 
 int recv_data_and_cs(int size, uint8_t *pBuf, uint8_t init_cs)
 {
   uint8_t cs = init_cs;
-  int byte;
-  while(size--){
-    byte = RXBYTE_TIMEOUT();
-    if(byte < 0){
-      return -1;
-    }else{
-      *pBuf++ = byte;
-      cs ^= byte;
-    }
-  }
-  byte = RXBYTE_TIMEOUT();
-  if(byte < 0){
+  if(RXBYTES_TIMEOUT(buff, size+1) != size+1){
     return -1;
-  }else if(cs != byte){
+  }
+  while(size--){
+    cs ^= *pBuf++;
+  }
+  if(cs != *pBuf){
     return -2;
   }else{
     return 0;
@@ -109,8 +102,7 @@ void cmdfunc_get_id()
 
 void cmdfunc_read_mem()
 {
-  uint8_t addr_data[4];
-  uint32_t addr;
+  uint32_t addr, size;
   //检查读保护
   if(IsRDP()){
     TXBYTE(NACK);
@@ -118,40 +110,38 @@ void cmdfunc_read_mem()
   }
   TXBYTE(ACK);
   //接收地址和校验和
-  if(recv_data_and_cs(4, addr_data, 0) < 0){
+  if(recv_data_and_cs(4, buff, 0) < 0){
     TXBYTE(NACK);
     return;
   }
-  addr = read_32b_bigend(addr_data);
+  addr = read_32b_bigend(buff);
   TXBYTE(ACK);
   //接收需要读取的字节数和校验字节（补码）
-  int byte1 = RXBYTE_TIMEOUT();
-  int byte2 = RXBYTE_TIMEOUT();
-  if((byte1 < 0) || (byte2 < 0) || ((byte1^byte2) != 0xff)){
+  if((RXBYTES_TIMEOUT(buff, 2) != 2) || ((buff[0]^buff[1]) != 0xff)){
     TXBYTE(NACK);
     return;
   }
+  size = buff[0]+1;
   TXBYTE(ACK);
-  Op_ReadMem(addr, buff, byte1+1);
-  TXBYTES(buff, byte1+1);
+  Op_ReadMem(addr, buff, size);
+  TXBYTES(buff, size);
 }
 
 void cmdfunc_go()
 {
-  uint8_t addr_data[4];
   uint32_t addr;
   if(IsRDP()){
     TXBYTE(NACK);
     return;
   }
   TXBYTE(ACK);
-  int ret = recv_data_and_cs(4, addr_data, 0);
+  int ret = recv_data_and_cs(4, buff, 0);
   TXBYTE(ACK);
   if(ret < 0){
     TXBYTE(NACK);
     return;
   }else{
-    addr = read_32b_bigend(addr_data);
+    addr = read_32b_bigend(buff);
     TXBYTE(ACK);
     UART_Wait_TXE_TC();
     Op_GoProgram(addr);
@@ -160,7 +150,6 @@ void cmdfunc_go()
 
 void cmdfunc_write_mem()
 {
-  uint8_t addr_data[4];
   uint32_t addr;
   //检查读保护
   if(IsRDP()){
@@ -169,12 +158,12 @@ void cmdfunc_write_mem()
   }
   TXBYTE(ACK);
   //接收地址和校验和
-  int ret = recv_data_and_cs(4, addr_data, 0);
+  int ret = recv_data_and_cs(4, buff, 0);
   if(ret < 0){
     TXBYTE(NACK);
     return;
   }
-  addr = read_32b_bigend(addr_data);
+  addr = read_32b_bigend(buff);
   TXBYTE(ACK);
   //接收字节数和数据
   int count = RXBYTE();
@@ -237,18 +226,18 @@ void command_stm32_proc()
   }
   TXBYTE(ACK);
   while(1){
-    uint8_t byte1 = RXBYTE();
-    int byte2 = RXBYTE_TIMEOUT();
-    if(byte2 < 0){
+    uint8_t code;
+    if(RXBYTES_TIMEOUT(buff, 2) != 2){
       continue;
     }
-    if((byte1^byte2) != 0xff){
+    if((buff[0]^buff[1]) != 0xff){
       TXBYTE(NACK);
       continue;
     }
+    code = buff[0];
     _Bool found = 0;
     for(int i=0;i<sizeof(cmdlist)/sizeof(cmdlist[0]);i++){
-      if(cmdlist[i].cmdcode == byte1){
+      if(cmdlist[i].cmdcode == code){
 	cmdlist[i].cmdfunc();
 	found = 1;
 	break;

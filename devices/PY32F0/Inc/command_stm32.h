@@ -22,7 +22,7 @@
 
 typedef struct{
   uint8_t (*RxByte)();
-  int (*RxByte_timeout)(uint32_t);
+  int (*RxBytes_timeout)(uint8_t *, uint32_t, uint32_t);
   void (*TxByte)(uint8_t);
   void (*TxBytes)(uint8_t *, uint32_t);
 }CmdIntface;
