@@ -39,7 +39,8 @@ const CmdIntface cmdintface_uart = {
   .RxByte = UART_RxByte,
   .RxBytes_timeout = UART_RxBytes_Timeout,
   .TxByte = UART_TxByte,
-  .TxBytes = UART_TxBytes
+  .TxBytes = UART_TxBytes,
+  .wait_Tx_finish = UART_Wait_TXE_TC,
 };
 
 void UART_Init()

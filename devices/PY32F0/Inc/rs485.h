@@ -27,5 +27,6 @@ uint8_t RS485m_RxByte();
 int RS485m_RxBytes_Timeout(uint8_t *p, uint32_t size, uint32_t timeout);
 void RS485m_TxByte(uint8_t byte);
 void RS485m_TxBytes(uint8_t *p, uint32_t size);
+void RS485m_WaitTxFinish();
 
 #endif

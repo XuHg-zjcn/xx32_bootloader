@@ -25,6 +25,7 @@ typedef struct{
   int (*RxBytes_timeout)(uint8_t *, uint32_t, uint32_t);
   void (*TxByte)(uint8_t);
   void (*TxBytes)(uint8_t *, uint32_t);
+  void (*wait_Tx_finish)();
 }CmdIntface;
 
 void command_stm32_proc();

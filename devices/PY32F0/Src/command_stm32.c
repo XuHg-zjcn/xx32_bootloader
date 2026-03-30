@@ -45,6 +45,7 @@ CmdIntface *pcmdif;
 #define RXBYTES_TIMEOUT(p, size) (pcmdif->RxBytes_timeout(p, size, 1000))
 #define TXBYTE(byte)      (pcmdif->TxByte(byte))
 #define TXBYTES(p, size)  (pcmdif->TxBytes(p, size))
+#define WAIT_TX_FINISH()  (pcmdif->wait_Tx_finish())
 
 typedef struct{
   uint8_t cmdcode;
@@ -143,7 +144,7 @@ void cmdfunc_go()
   }else{
     addr = read_32b_bigend(buff);
     TXBYTE(ACK);
-    UART_Wait_TXE_TC();
+    WAIT_TX_FINISH();
     Op_GoProgram(addr);
   }
 }

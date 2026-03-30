@@ -41,7 +41,8 @@ const CmdIntface cmdintface_rs485m = {
   .RxByte = RS485m_RxByte,
   .RxBytes_timeout = RS485m_RxBytes_Timeout,
   .TxByte = RS485m_TxByte,
-  .TxBytes = RS485m_TxBytes
+  .TxBytes = RS485m_TxBytes,
+  .wait_Tx_finish = RS485m_WaitTxFinish,
 };
 
 /******************************************
@@ -167,3 +168,6 @@ void RS485m_TxBytes(uint8_t *p, uint32_t size)
   RS485_Send_manchester(p, size);
 }
 
+void RS485m_WaitTxFinish()
+{
+}

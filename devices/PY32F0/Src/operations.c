@@ -17,6 +17,7 @@
 #include "operations.h"
 #include "py32f0xx_ll_rcc.h"
 #include "py32f0xx_hal_flash.h"
+#include "flash.h"
 
 void Op_GoProgram(uint32_t addr)
 {

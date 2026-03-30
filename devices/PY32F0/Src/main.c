@@ -73,7 +73,6 @@ int main(void)
   pcmdif = &cmdintface_rs485m;
   command_stm32_proc();
 
-  int i=0;
   while (1)
   {
     LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_0);
