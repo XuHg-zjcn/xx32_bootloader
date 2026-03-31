@@ -21,7 +21,7 @@ import device
 import time
 import random
 
-s = serial.Serial('/dev/ttyUSB0', 250000, timeout=0.1)
+s = serial.Serial('/dev/ttyUSB0', 250000, timeout=1)
 
 dev = device.Device(s)
 
