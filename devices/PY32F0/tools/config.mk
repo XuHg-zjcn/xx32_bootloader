@@ -32,4 +32,4 @@ VERBOSE ?= YES
 
 #输出文件目录
 OBJODIR = obj
-TARGET = obj/target
+TARGET = obj/main

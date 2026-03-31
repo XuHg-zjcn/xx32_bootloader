@@ -59,10 +59,8 @@ CXXFLAGS += -Os#                  #最小文件大小优化
 
 ASMFLAGS := $(COMFLAGS)
 
-LDFILE = $(DEV_DIR)/Drivers/CMSIS/Device/PY32F0xx/Source/gcc/$(shell echo $(MODEL_D) | tr A-Z a-z).ld
 LDFLAGS += -nostartfiles#        #不用标准启动文件
 LDFLAGS := $(COMFLAGS)
-LDFLAGS += -T $(LDFILE)#     #链接器脚本
 LDFLAGS += -Xlinker#             #
 LDFLAGS += --gc-sections#        #删除无用sections
 LDFLAGS += -Wl,-Map,"$(TARGET).map"#链接器参数

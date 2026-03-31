@@ -41,11 +41,14 @@ obj/%.o: %.s
 	@mkdir -p $(dir $@)
 	$(ASM) $(ASMFLAGS) $(INCS) -c -o "$@" "$<"
 
-$(TARGET).elf: $(OBJF)
-	$(LINK) $(LDFLAGS) -o "$@" $^
+obj/main.elf: $(OBJF)
+	$(LINK) -T $(TOOL_DIR)/main.ld  $(LDFLAGS) -o "$@" $^
 
-$(TARGET).hex: $(TARGET).elf
+obj/backend.elf: $(OBJF)
+	$(LINK) -T $(TOOL_DIR)/backend.ld  $(LDFLAGS) -o "$@" $^
+
+%.hex: %.elf
 	$(OBJCOPY) -O ihex "$<" "$@"
 
-$(TARGET).bin: $(TARGET).elf
+%.bin: %.elf
 	$(OBJCOPY) -O binary "$<" "$@"

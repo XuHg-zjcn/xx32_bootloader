@@ -1,0 +1,1 @@
+../PY32F0xx/Drivers/CMSIS/Device/PY32F0xx/Source/gcc/py32f003x8.ld

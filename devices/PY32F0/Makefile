@@ -24,7 +24,7 @@ MODEL_D = PY32F003x8
 
 sinclude $(TOOL_DIR)/conf.mk
 
-all: $(TARGET).hex flash
+all: obj/main.hex obj/main.bin obj/backend.bin flash
 
 sinclude $(TOOL_DIR)/build.mk
 sinclude $(TOOL_DIR)/mcu.mk
