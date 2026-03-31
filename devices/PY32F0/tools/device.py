@@ -56,7 +56,7 @@ class Device:
     def go(self, addr):
         if addr < 0 or addr > 0xffffffff:
             raise ValueError
-        addr_b = int.to_bytes(start_addr, 4, 'big')
+        addr_b = int.to_bytes(addr, 4, 'big')
         addr_c = calc_xor_checksum(addr_b)
         self.s.write(b'\x21\xde')
         if self.s.read(1) != b'\x79':
@@ -64,6 +64,7 @@ class Device:
         self.s.write(addr_b + addr_c)
         if self.s.read(1) != b'\x79':
             return -2
+        return 0
 
     def write_mem(self, start_addr, data):
         if start_addr < 0 or start_addr > 0xffffffff:
