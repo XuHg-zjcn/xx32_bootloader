@@ -30,15 +30,15 @@ print('data to write')
 print(data.hex())
 print()
 
-print('erase:', dev.erase_mem([8]))
+print('erase:', dev.erase_mem([32]))
 
 time.sleep(0.1)
 
-print('write:', dev.write_mem(0x08002000, data))
+print('write:', dev.write_mem(0x08008000, data))
 
 time.sleep(0.1)
 
-data_r = dev.read_mem(0x08002000, 128)
+data_r = dev.read_mem(0x08008000, 128)
 
 print('read: ')
 if isinstance(data_r, bytes):

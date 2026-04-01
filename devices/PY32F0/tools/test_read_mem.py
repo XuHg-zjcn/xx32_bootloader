@@ -23,7 +23,7 @@ import device
 s = serial.Serial('/dev/ttyUSB0', 250000, timeout=0.1)
 
 dev = device.Device(s)
-data = dev.read_mem(0x08002000, 256)
+data = dev.read_mem(0x08008000, 256)
 if isinstance(data, bytes):
     print(data.hex())
 else:

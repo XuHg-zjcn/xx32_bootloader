@@ -29,6 +29,7 @@
   */
 
 #include "py32f0xx.h"
+#include "operations.h"
 
 #if !defined  (HSE_VALUE)
 #define HSE_VALUE    24000000U    /*!< Value of the External oscillator in Hz */
@@ -46,6 +47,7 @@
 #define LSE_VALUE  32768U      /*!< Value of LSE in Hz*/
 #endif /* LSE_VALUE */
 
+#define MAIN_PROGRAM_ADDR  (0x08001000)
 
 /************************* Miscellaneous Configuration ************************/
 /*!< Uncomment the following line if you need to relocate your vector Table in
@@ -71,6 +73,7 @@ uint32_t SystemCoreClock = HSI_VALUE;
 const uint32_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
 const uint32_t APBPrescTable[8] =  {0, 0, 0, 0, 1, 2, 3, 4};
 const uint32_t HSIFreqTable[8] = {4000000U, 8000000U, 16000000U, 22120000U, 24000000U, 4000000U, 4000000U, 4000000U};
+const char magic_bl[16] __attribute__((aligned(4))) = "EntryBootloader";
 
 /**
  * @brief  Clock functions.
@@ -135,6 +138,25 @@ void SystemInit(void)
 {
   /* Set the HSI clock to 8MHz by default */
   RCC->ICSCR = (RCC->ICSCR & 0xFFFF0000) | (0x1 << 13) | ((*(uint32_t *)(0x1FFF0F04)) & 0x1FFF);
+
+  //检查主程序是否存在
+  uint32_t *p_program = ((uint32_t *)MAIN_PROGRAM_ADDR);
+  uint32_t new_sp = p_program[0];
+  uint32_t new_pc = p_program[1];
+  if((new_sp >= 0x20000000) && (new_sp <= 0x20002000) && (new_pc >= 0x08001000) && (new_pc < 0x08010000)){
+    //已检测到主程序，需检查是否需要进入bootloader
+    //内存0x20000000处需要存放指定字符串才能进入bootloadr，否则执行主程序
+    const uint32_t *p = (uint32_t *)0x20000000;
+    const uint32_t *pm = (const uint32_t *)magic_bl;
+    for(int i=0;i<4;i++){
+      if(p[i] != pm[i]){ //一次比较4字节
+        //有一个不匹配立即进主程序
+        Op_GoProgram(MAIN_PROGRAM_ADDR);
+      }
+    }
+  }
+  //主程序缺失 或 在内存中有完整的"EntryBootloader"字符串
+  //继续执行本bootloader程序
 
   /* Configure the Vector Table location add offset address ------------------*/
 #ifdef VECT_TAB_SRAM

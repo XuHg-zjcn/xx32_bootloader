@@ -65,6 +65,9 @@ void Op_WriteMem(uint32_t addr, const uint8_t *pbuff, uint32_t size)
 //擦除1kB块
 void Op_EraseFlash(uint32_t addr)
 {
+  if(addr < 0x08001000){
+    return;
+  }
   HAL_FLASH_Unlock();
   FLASH_PageErase_Block(addr, 8);
   HAL_FLASH_Lock();

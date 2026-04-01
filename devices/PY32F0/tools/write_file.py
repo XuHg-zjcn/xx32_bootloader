@@ -28,7 +28,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 3:
         addr_start = int(sys.argv[2], 0)
     else:
-        addr_start = 0x08000000
+        addr_start = 0x08001000
     filesize = os.stat(filename).st_size
     addr_stop = addr_start + filesize
 
