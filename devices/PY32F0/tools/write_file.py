@@ -23,6 +23,8 @@ import serial
 import device
 
 
+MAX_TRYS = 10
+
 if __name__ == '__main__':
     filename = sys.argv[1]
     if len(sys.argv) == 3:
@@ -32,7 +34,7 @@ if __name__ == '__main__':
     filesize = os.stat(filename).st_size
     addr_stop = addr_start + filesize
 
-    s = serial.Serial('/dev/ttyUSB0', 250000, timeout=5)
+    s = serial.Serial('/dev/ttyUSB0', 250000, timeout=0.5)
     dev = device.Device(s)
 
     erase_start = math.floor((addr_start - 0x08000000)/1024)
@@ -55,9 +57,14 @@ if __name__ == '__main__':
                 break
             if len(data) < 128:
                 data += b'\xff'*(128-len(data))
-            code = dev.write_mem(addr, data)
-            if code != 0:
-                print(f'写入失败 {code} 0x{addr:08x}')
+            for i in range(MAX_TRYS):
+                code = dev.write_mem(addr, data)
+                if code != 0:
+                    print(f'写入失败 {code} 0x{addr:08x}')
+                else:
+                    break
+            else:
+                print('多次写入失败')
                 sys.exit()
             addr += 128
     print('写入完成')
@@ -70,7 +77,13 @@ if __name__ == '__main__':
                 break
             if len(data) < 128:
                 data += b'\xff'*(128-len(data))
-            if dev.read_mem(addr, 128) != data:
+            for i in range(MAX_TRYS):
+                data_read = dev.read_mem(addr, 128)
+                if not isinstance(data_read, bytes) or len(data_read) != len(data):
+                    print(f'校验时读取出错 0x{addr:08x}, {data_read}')
+                else:
+                    break
+            else:
                 print(f'校验失败 0x{addr:08x}')
                 sys.exit()
             addr += 128

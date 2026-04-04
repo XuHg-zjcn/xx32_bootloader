@@ -19,6 +19,8 @@
 import serial
 
 
+# 不应该用返回数表示错误，改用raise错误，方便实现多次try
+
 def calc_xor_checksum(data):
     x = 0
     for b in data:
