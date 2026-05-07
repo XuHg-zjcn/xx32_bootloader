@@ -18,6 +18,8 @@
 #ifndef CHECK_PROGRAM_H
 #define CHECK_PROGRAM_H
 
+int check_mainprogram();
+int check_ram_bootloader_sign();
 void check_and_auto_entry_mainprogram();
 
 #endif

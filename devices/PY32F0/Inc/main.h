@@ -42,6 +42,12 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* Private defines -----------------------------------------------------------*/
+#define BOOT_ENTRY_NO      (0U)
+#define BOOT_ENTRY_FAST    (1U)
+#define BOOT_ENTRY_WAIT    (2U)
+#define BOOT_WAIT_MS       (100)
+#define BOOT_MODE          (BOOT_ENTRY_WAIT)
+#define MAIN_PROGRAM_ADDR  (0x08001000)
 /* Exported variables prototypes ---------------------------------------------*/
 /* Exported functions prototypes ---------------------------------------------*/
 void APP_ErrorHandler(void);

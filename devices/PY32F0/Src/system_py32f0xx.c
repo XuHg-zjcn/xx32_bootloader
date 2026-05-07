@@ -30,6 +30,7 @@
 
 #include "py32f0xx.h"
 #include "check_program.h"
+#include "main.h"
 
 #if !defined  (HSE_VALUE)
 #define HSE_VALUE    24000000U    /*!< Value of the External oscillator in Hz */
@@ -47,7 +48,6 @@
 #define LSE_VALUE  32768U      /*!< Value of LSE in Hz*/
 #endif /* LSE_VALUE */
 
-#define MAIN_PROGRAM_ADDR  (0x08001000)
 
 /************************* Miscellaneous Configuration ************************/
 /*!< Uncomment the following line if you need to relocate your vector Table in
@@ -138,7 +138,9 @@ void SystemInit(void)
   /* Set the HSI clock to 8MHz by default */
   RCC->ICSCR = (RCC->ICSCR & 0xFFFF0000) | (0x1 << 13) | ((*(uint32_t *)(0x1FFF0F04)) & 0x1FFF);
 
+#if (BOOT_MODE == BOOT_ENTRY_FAST)
   check_and_auto_entry_mainprogram();
+#endif
 
   /* Configure the Vector Table location add offset address ------------------*/
 #ifdef VECT_TAB_SRAM

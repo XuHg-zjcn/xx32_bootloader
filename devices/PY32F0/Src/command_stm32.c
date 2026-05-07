@@ -36,6 +36,9 @@
 #define NACK             (0x1F)
 #define IsRDP()          (0)
 
+#if (BOOT_MODE == BOOT_ENTRY_WAIT)
+uint8_t CmdRx = 0; //是否接收到指令
+#endif
 const uint8_t bl_ver = 0x01;  //自定义版本，用于测试
 const uint16_t pid = 0x0440;  //STM32F10xxx 小容量
 
@@ -52,7 +55,8 @@ typedef struct{
   void (*cmdfunc)();
 }cmditem;
 
-uint8_t buff[260];
+//必须4字节对齐，FLASH操作函数需要一次读4字节
+uint8_t buff[260] __attribute__((aligned(4)));
 
 int recv_data_and_cs(int size, uint8_t *pBuf, uint8_t init_cs)
 {
@@ -247,5 +251,10 @@ void command_stm32_proc()
     if(!found){
       TXBYTE(NACK);
     }
+#if (BOOT_MODE == BOOT_ENTRY_WAIT)
+    else{
+      CmdRx = 1;
+    }
+#endif
   }
 }
