@@ -38,6 +38,8 @@
 #include "py32f0xx_ll_system.h"
 #include "py32f0xx_ll_bus.h"
 #include "py32f0xx_ll_gpio.h"
+#include "check_program.h"
+#include "operations.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -71,12 +73,21 @@ int main(void)
   //UART_Init();
   RS485_Init();
   pcmdif = &cmdintface_rs485m;
-  command_stm32_proc();
-
+  int CmdRx = 0;
   while (1)
   {
-    LL_GPIO_TogglePin(GPIOA, LL_GPIO_PIN_0);
-    HAL_Delay(500);
+    if(command_stm32_proc() >= 0){
+      CmdRx = 1;
+    }
+#if (BOOT_MODE == BOOT_ENTRY_WAIT)
+  if((CmdRx == 0) && (HAL_GetTick() > BOOT_WAIT_MS)){
+    if((check_mainprogram() == 0) && (check_ram_bootloader_sign() == 0)){
+      Op_GoProgram(MAIN_PROGRAM_ADDR);
+    }else{
+      CmdRx = 1;
+    }
+  }
+#endif
   }
 }
 

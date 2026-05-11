@@ -36,9 +36,6 @@
 #define NACK             (0x1F)
 #define IsRDP()          (0)
 
-#if (BOOT_MODE == BOOT_ENTRY_WAIT)
-uint8_t CmdRx = 0; //是否接收到指令
-#endif
 const uint8_t bl_ver = 0x01;  //自定义版本，用于测试
 const uint16_t pid = 0x0440;  //STM32F10xxx 小容量
 
@@ -224,37 +221,32 @@ void cmdfunc_get()
   TXBYTE(ACK);
 }
 
-void command_stm32_proc()
+int command_stm32_proc()
 {
-  if(!pcmdif){
-    return;
+  uint8_t code;
+  if(RXBYTES_TIMEOUT(buff, 2) != 2){
+    return -1;
   }
-  TXBYTE(ACK);
-  while(1){
-    uint8_t code;
-    if(RXBYTES_TIMEOUT(buff, 2) != 2){
-      continue;
+  if((buff[0]^buff[1]) != 0xff){
+    TXBYTE(NACK);
+    return -1;
+  }
+  code = buff[0];
+  _Bool found = 0;
+  int i;
+  for(i=0;i<sizeof(cmdlist)/sizeof(cmdlist[0]);i++){
+    if(cmdlist[i].cmdcode == code){
+      cmdlist[i].cmdfunc();
+      found = 1;
+      break;
     }
-    if((buff[0]^buff[1]) != 0xff){
-      TXBYTE(NACK);
-      continue;
-    }
-    code = buff[0];
-    _Bool found = 0;
-    for(int i=0;i<sizeof(cmdlist)/sizeof(cmdlist[0]);i++){
-      if(cmdlist[i].cmdcode == code){
-	cmdlist[i].cmdfunc();
-	found = 1;
-	break;
-      }
-    }
-    if(!found){
-      TXBYTE(NACK);
-    }
-#if (BOOT_MODE == BOOT_ENTRY_WAIT)
-    else{
-      CmdRx = 1;
-    }
-#endif
+  }
+  if(!found){
+    TXBYTE(NACK);
+  }
+  if(i>=sizeof(cmdlist)/sizeof(cmdlist[0])){
+    return -2;
+  }else{
+    return i;
   }
 }

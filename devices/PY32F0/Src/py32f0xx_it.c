@@ -31,8 +31,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "py32f0xx_it.h"
-#include "check_program.h"
-#include "operations.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
@@ -43,9 +41,6 @@
 /* Private user code ---------------------------------------------------------*/
 /* External variables --------------------------------------------------------*/
 extern __IO uint32_t uwTick;
-#if (BOOT_MODE == BOOT_ENTRY_WAIT)
-extern uint8_t CmdRx;
-#endif
 
 /******************************************************************************/
 /*           Cortex-M0+ Processor Interruption and Exception Handlers          */ 
@@ -88,15 +83,6 @@ void SysTick_Handler(void)
 {
   uwTick += 1;
   //HAL_IncTick();
-#if (BOOT_MODE == BOOT_ENTRY_WAIT)
-  if((CmdRx == 0) && (uwTick > BOOT_WAIT_MS)){
-    if((check_mainprogram() == 0) && (check_ram_bootloader_sign() == 0)){
-      Op_GoProgram(MAIN_PROGRAM_ADDR);
-    }else{
-      CmdRx = 1;
-    }
-  }
-#endif
 }
 
 /******************************************************************************/

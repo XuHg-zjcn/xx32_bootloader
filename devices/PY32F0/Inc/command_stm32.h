@@ -28,6 +28,6 @@ typedef struct{
   void (*wait_Tx_finish)();
 }CmdIntface;
 
-void command_stm32_proc();
+int command_stm32_proc();
 
 #endif
