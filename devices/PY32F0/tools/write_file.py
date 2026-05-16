@@ -81,6 +81,8 @@ if __name__ == '__main__':
                 data_read = dev.read_mem(addr, 128)
                 if not isinstance(data_read, bytes) or len(data_read) != len(data):
                     print(f'校验时读取出错 0x{addr:08x}, {data_read}')
+                elif data != data_read:
+                    print(f'校验读出数据不一致 0x{addr:08x}')
                 else:
                     break
             else:
