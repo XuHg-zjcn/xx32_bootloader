@@ -21,7 +21,7 @@ import serial
 
 s = serial.Serial('/dev/ttyUSB0', 250000, timeout=0.02)
 
-for i in range(1000):
+while True:
     s.write(b'\x00\xff')
     a = s.read(10)
     if len(a) >= 4:

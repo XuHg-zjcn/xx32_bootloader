@@ -40,12 +40,15 @@
 #include "py32f0xx_ll_gpio.h"
 #include "check_program.h"
 #include "operations.h"
+#include "interface.h"
 
 /* Private define ------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-extern CmdIntface *pcmdif;
+#if INTERFACE_USE_SWITCHABLE
+CmdIntface *pcmdif;
 extern CmdIntface cmdintface_uart;
 extern CmdIntface cmdintface_rs485m;
+#endif
 /* Private user code ---------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -72,7 +75,9 @@ int main(void)
 
   //UART_Init();
   RS485_Init();
+#if INTERFACE_USE_SWITCHABLE
   pcmdif = &cmdintface_rs485m;
+#endif
   int CmdRx = 0;
   while (1)
   {

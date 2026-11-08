@@ -39,6 +39,7 @@
 #include "stm32f1xx_hal.h"
 #include "uart.h"
 #include "command_stm32.h"
+#include "interface.h"
 
 /** @addtogroup STM32F1xx_LL_Examples
   * @{
@@ -75,12 +76,16 @@ int main(void)
   LL_GPIO_SetPinOutputType(GPIOC, LL_GPIO_PIN_13, LL_GPIO_OUTPUT_PUSHPULL);
   LL_GPIO_SetOutputPin(GPIOC, LL_GPIO_PIN_13);
   UART_Init();
+  IF_TXBYTE(0x79);
   LL_GPIO_ResetOutputPin(GPIOC, LL_GPIO_PIN_13); //LED on
-  command_stm32_proc();
   
   /* Infinite loop */
   while (1)
   {
+    //TODO: bootloader程序启动后，上位机stm32flash只能在第一次成功初始化，需修复
+    if(command_stm32_proc() >= 0){
+      LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
+    }
   }
 }
 

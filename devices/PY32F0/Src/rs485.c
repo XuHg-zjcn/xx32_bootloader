@@ -22,6 +22,7 @@
 #include "py32f0xx_ll_usart.h"
 #include "py32f0xx_ll_dma.h"
 #include "command_stm32.h"
+#include "interface.h"
 
 #define TR_LL_GPIO_PIN    LL_GPIO_PIN_5
 #define TR_GPIO_PORT      GPIOB
@@ -35,11 +36,12 @@
 #define TXD_LL_GPIO_AF    LL_GPIO_AF_1
 #define USARTx            USART1
 #define BAUDRATE          (500000)
+#define TIMEOUT0          (1000)
 #define TIMEOUT1          (3)
 
 const CmdIntface cmdintface_rs485m = {
   .RxByte = RS485m_RxByte,
-  .RxBytes_timeout = RS485m_RxBytes_Timeout,
+  .RxBytes = RS485m_RxBytes,
   .TxByte = RS485m_TxByte,
   .TxBytes = RS485m_TxBytes,
   .wait_Tx_finish = RS485m_WaitTxFinish,
@@ -110,12 +112,12 @@ int RS485_Send_manchester(const uint8_t *p, uint32_t size)
   LL_GPIO_ResetOutputPin(TR_GPIO_PORT, TR_LL_GPIO_PIN);
 }
 
-int RS485m_RxBytes_Timeout(uint8_t *p, uint32_t size, uint32_t timeout0)
+int RS485m_RxBytes(uint8_t *p, uint32_t size)
 {
   uint8_t encH, encL, byte;
   uint16_t enc;
   uint8_t *p0 = p;
-  uint32_t ts_timeout = HAL_GetTick()+timeout0;
+  uint32_t ts_timeout = HAL_GetTick()+TIMEOUT0;
   while(size--){
     while(!LL_USART_IsActiveFlag_RXNE(USARTx) && (HAL_GetTick() < ts_timeout));
     if(LL_USART_IsActiveFlag_RXNE(USARTx)){
@@ -151,7 +153,7 @@ uint8_t RS485m_RxByte()
 {
   uint8_t byte;
   while(1){
-    int stat = RS485m_RxBytes_Timeout(&byte, 1, 1000);
+    int stat = RS485m_RxBytes(&byte, 1);
     if(stat == 1){
       return byte;
     }

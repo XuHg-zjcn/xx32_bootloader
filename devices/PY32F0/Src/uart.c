@@ -21,6 +21,7 @@
 #include "py32f0xx_ll_usart.h"
 #include "command_stm32.h"
 #include "measure_baud.h"
+#include "interface.h"
 
 #define USARTx_INSTANCE     (USART1)
 #define USARTx_TX_GPIO_PORT (GPIOA)
@@ -30,6 +31,7 @@
 #define USARTx_RX_PIN       (LL_GPIO_PIN_3)
 #define USARTx_RX_AF        (LL_GPIO_AF_1)
 #define BAUDRATE            (57600)
+#define TIMEOUT0            (1000)
 #define TIMEOUT1            (3)
 
 //ref:
@@ -37,7 +39,7 @@
 
 const CmdIntface cmdintface_uart = {
   .RxByte = UART_RxByte,
-  .RxBytes_timeout = UART_RxBytes_Timeout,
+  .RxBytes = UART_RxBytes,
   .TxByte = UART_TxByte,
   .TxBytes = UART_TxBytes,
   .wait_Tx_finish = UART_Wait_TXE_TC,
@@ -87,16 +89,21 @@ void UART_Init()
   }*/
 }
 
-uint8_t UART_RxByte()
+int UART_RxByte()
 {
-  while(!LL_USART_IsActiveFlag_RXNE(USARTx_INSTANCE));
-  return LL_USART_ReceiveData8(USARTx_INSTANCE);
+  uint32_t t_start = HAL_GetTick();
+  while(!LL_USART_IsActiveFlag_RXNE(USARTx_INSTANCE) && HAL_GetTick()-t_start<TIMEOUT0);
+  if(LL_USART_IsActiveFlag_RXNE(USARTx_INSTANCE)){
+    return LL_USART_ReceiveData8(USARTx_INSTANCE);
+  }else{
+    return -1;
+  }
 }
 
-int UART_RxBytes_Timeout(uint8_t *pBuf, uint32_t size, uint32_t timeout0)
+int UART_RxBytes(uint8_t *pBuf, uint32_t size)
 {
   uint8_t *p = pBuf;
-  uint32_t ts_timeout = HAL_GetTick()+timeout0;
+  uint32_t ts_timeout = HAL_GetTick()+TIMEOUT0;
   while(size--){
     while(!LL_USART_IsActiveFlag_RXNE(USARTx_INSTANCE) && HAL_GetTick()<ts_timeout);
     if(LL_USART_IsActiveFlag_RXNE(USARTx_INSTANCE)){
