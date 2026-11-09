@@ -222,8 +222,14 @@ void cmdfunc_get()
 int command_stm32_proc()
 {
   uint8_t code;
-  if(RXBYTES_TIMEOUT(buff, 2) != 2){
-    return -1;
+  int bytes = RXBYTES_TIMEOUT(buff, 2);
+  if(bytes != 2){
+    if((bytes == 1) && (buff[0] == 0x7f)){
+      TXBYTE(ACK);
+      return 0x7f;
+    }else{
+      return -1;
+    }
   }
   if((buff[0]^buff[1]) != 0xff){
     TXBYTE(NACK);

@@ -82,7 +82,6 @@ int main(void)
   /* Infinite loop */
   while (1)
   {
-    //TODO: bootloader程序启动后，上位机stm32flash只能在第一次成功初始化，需修复
     if(command_stm32_proc() >= 0){
       LL_GPIO_TogglePin(GPIOC, LL_GPIO_PIN_13);
     }
