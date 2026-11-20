@@ -19,8 +19,9 @@
 #define RS485_H
 
 #include <stdint.h>
+#include "config.h"
 
-
+#if INTERFACE_USE_RS485M
 void RS485_Init();
 
 uint8_t RS485m_RxByte();
@@ -28,5 +29,6 @@ int RS485m_RxBytes(uint8_t *p, uint32_t size);
 void RS485m_TxByte(uint8_t byte);
 void RS485m_TxBytes(uint8_t *p, uint32_t size);
 void RS485m_WaitTxFinish();
+#endif
 
 #endif

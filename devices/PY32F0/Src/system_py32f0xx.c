@@ -30,6 +30,7 @@
 
 #include "py32f0xx.h"
 #include "check_program.h"
+#include "config.h"
 #include "main.h"
 
 #if !defined  (HSE_VALUE)

@@ -1,8 +1,7 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-#define INTERFACE_USE_SWITCHABLE 0
-#define INTERFACE_USE_UART       1
+#include "config.h"
 
 typedef struct{
   uint8_t (*RxByte)();

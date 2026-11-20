@@ -19,12 +19,15 @@
 #define UART_H
 
 #include <stdint.h>
+#include "config.h"
 
+#if INTERFACE_USE_UART
 void UART_Init();
 int UART_RxByte();
 int UART_RxBytes(uint8_t *pBuf, uint32_t size);
 void UART_TxByte(uint8_t byte);
 void UART_TxBytes(uint8_t *pBuf, uint32_t size);
 void UART_Wait_TXE_TC();
+#endif
 
 #endif

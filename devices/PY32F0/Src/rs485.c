@@ -22,23 +22,10 @@
 #include "py32f0xx_ll_usart.h"
 #include "py32f0xx_ll_dma.h"
 #include "command_stm32.h"
+#include "config.h"
 #include "interface.h"
 
-#define TR_LL_GPIO_PIN    LL_GPIO_PIN_5
-#define TR_GPIO_PORT      GPIOB
-
-#define RXD_LL_GPIO_PIN   LL_GPIO_PIN_13
-#define RXD_GPIO_PORT     GPIOA
-#define RXD_LL_GPIO_AF    LL_GPIO_AF_8
-
-#define TXD_LL_GPIO_PIN   LL_GPIO_PIN_14
-#define TXD_GPIO_PORT     GPIOA
-#define TXD_LL_GPIO_AF    LL_GPIO_AF_1
-#define USARTx            USART1
-#define BAUDRATE          (500000)
-#define TIMEOUT0          (1000)
-#define TIMEOUT1          (3)
-
+#if INTERFACE_USE_RS485M
 const CmdIntface cmdintface_rs485m = {
   .RxByte = RS485m_RxByte,
   .RxBytes = RS485m_RxBytes,
@@ -86,14 +73,14 @@ void RS485_Init()
 
   //配置USART
   //设置1位停止位时示波器看TXD引脚会有2个周期的高电平，设置2位则有3个周期
-  LL_USART_SetTransferDirection(USARTx, LL_USART_DIRECTION_TX_RX);
-  LL_USART_ConfigCharacter(USARTx, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
-  LL_USART_SetHWFlowCtrl(USARTx, LL_USART_HWCONTROL_NONE);
-  LL_USART_SetOverSampling(USARTx, LL_USART_OVERSAMPLING_16);
-  //LL_USART_SetBaudRate(USARTx, 8000000, 115200, LL_USART_OVERSAMPLING_16); //该函数计算波特率有误
-  USARTx->BRR = (SystemCoreClock + BAUDRATE/2)/BAUDRATE;
-  LL_USART_ConfigAsyncMode(USARTx);
-  LL_USART_Enable(USARTx);
+  LL_USART_SetTransferDirection(RS485M_USARTx, LL_USART_DIRECTION_TX_RX);
+  LL_USART_ConfigCharacter(RS485M_USARTx, LL_USART_DATAWIDTH_8B, LL_USART_PARITY_NONE, LL_USART_STOPBITS_1);
+  LL_USART_SetHWFlowCtrl(RS485M_USARTx, LL_USART_HWCONTROL_NONE);
+  LL_USART_SetOverSampling(RS485M_USARTx, LL_USART_OVERSAMPLING_16);
+  //LL_USART_SetBaudRate(RS485M_USARTx, 8000000, 115200, LL_USART_OVERSAMPLING_16); //该函数计算波特率有误
+  RS485M_USARTx->BRR = (SystemCoreClock + RS485M_BAUDRATE/2)/RS485M_BAUDRATE;
+  LL_USART_ConfigAsyncMode(RS485M_USARTx);
+  LL_USART_Enable(RS485M_USARTx);
 }
 
 int RS485_Send_manchester(const uint8_t *p, uint32_t size)
@@ -102,13 +89,13 @@ int RS485_Send_manchester(const uint8_t *p, uint32_t size)
   while(size--){
     uint8_t byte = *p++;
     uint8_t encL = tab_enc[byte&0x0f];
-    while(!LL_USART_IsActiveFlag_TXE(USARTx));
-    LL_USART_TransmitData8(USARTx, encL);
+    while(!LL_USART_IsActiveFlag_TXE(RS485M_USARTx));
+    LL_USART_TransmitData8(RS485M_USARTx, encL);
     uint8_t encH = tab_enc[(byte>>4)&0x0f];
-    while(!LL_USART_IsActiveFlag_TXE(USARTx));
-    LL_USART_TransmitData8(USARTx, encH);
+    while(!LL_USART_IsActiveFlag_TXE(RS485M_USARTx));
+    LL_USART_TransmitData8(RS485M_USARTx, encH);
   }
-  while(!LL_USART_IsActiveFlag_TC(USARTx));
+  while(!LL_USART_IsActiveFlag_TC(RS485M_USARTx));
   LL_GPIO_ResetOutputPin(TR_GPIO_PORT, TR_LL_GPIO_PIN);
 }
 
@@ -117,22 +104,22 @@ int RS485m_RxBytes(uint8_t *p, uint32_t size)
   uint8_t encH, encL, byte;
   uint16_t enc;
   uint8_t *p0 = p;
-  uint32_t ts_timeout = HAL_GetTick()+TIMEOUT0;
+  uint32_t ts_timeout = HAL_GetTick()+RS485M_TIMEOUT0;
   while(size--){
-    while(!LL_USART_IsActiveFlag_RXNE(USARTx) && (HAL_GetTick() < ts_timeout));
-    if(LL_USART_IsActiveFlag_RXNE(USARTx)){
-      encL = LL_USART_ReceiveData8(USARTx);
+    while(!LL_USART_IsActiveFlag_RXNE(RS485M_USARTx) && (HAL_GetTick() < ts_timeout));
+    if(LL_USART_IsActiveFlag_RXNE(RS485M_USARTx)){
+      encL = LL_USART_ReceiveData8(RS485M_USARTx);
     }else{
       break;
     }
-    ts_timeout = HAL_GetTick() + TIMEOUT1;
-    while(!LL_USART_IsActiveFlag_RXNE(USARTx) && (HAL_GetTick() < ts_timeout));
-    if(LL_USART_IsActiveFlag_RXNE(USARTx)){
-      encH = LL_USART_ReceiveData8(USARTx);
+    ts_timeout = HAL_GetTick() + RS485M_TIMEOUT1;
+    while(!LL_USART_IsActiveFlag_RXNE(RS485M_USARTx) && (HAL_GetTick() < ts_timeout));
+    if(LL_USART_IsActiveFlag_RXNE(RS485M_USARTx)){
+      encH = LL_USART_ReceiveData8(RS485M_USARTx);
     }else{
       break;
     }
-    ts_timeout = HAL_GetTick() + TIMEOUT1;
+    ts_timeout = HAL_GetTick() + RS485M_TIMEOUT1;
     enc = (encL) | (encH << 8U);
     if(((enc ^ (enc >> 1U))&0x5555) != 0x5555){
       return -1;
@@ -173,3 +160,4 @@ void RS485m_TxBytes(uint8_t *p, uint32_t size)
 void RS485m_WaitTxFinish()
 {
 }
+#endif

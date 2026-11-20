@@ -1,9 +1,7 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-#define INTERFACE_USE_SWITCHABLE 1
-#define INTERFACE_USE_UART       1
-#define INTERFACE_USE_RS485M     1
+#include "config.h"
 
 typedef struct{
   int (*RxByte)();

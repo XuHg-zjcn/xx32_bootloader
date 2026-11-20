@@ -30,6 +30,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "config.h"
 #include "uart.h"
 #include "rs485.h"
 #include "command_stm32.h"

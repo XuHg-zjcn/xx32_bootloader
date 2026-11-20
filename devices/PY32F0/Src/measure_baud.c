@@ -19,10 +19,7 @@
 #include "py32f0xx_ll_bus.h"
 #include "py32f0xx_ll_tim.h"
 #include "py32f0xx_ll_gpio.h"
-
-#define MB_GPIO_PORT  (GPIOA)
-#define MB_PIN        (LL_GPIO_PIN_3)
-#define MB_AF         (LL_GPIO_AF_13)
+#include "config.h"
 
 void MB_TIMInit()
 {

@@ -21,18 +21,12 @@
 #include "stm32f1xx_hal.h"
 #include "measure_baud.h"
 #include "interface.h"
-
-#define USARTx_INSTANCE     (USART1)
-#define USARTx_TX_GPIO_PORT (GPIOA)
-#define USARTx_TX_PIN       (LL_GPIO_PIN_9)
-#define USARTx_RX_GPIO_PORT (GPIOA)
-#define USARTx_RX_PIN       (LL_GPIO_PIN_10)
-#define TIMEOUT0            (1000)
-#define TIMEOUT1            (10)
+#include "config.h"
 
 //ref:
 //STM32CubeF1/Projects/STM32F103RB-Nucleo/Examples_LL/USART/USART_Communication_Tx
 
+#if INTERFACE_USE_UART
 void UART_Init()
 {
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
@@ -61,7 +55,7 @@ void UART_Init()
 int UART_RxByte()
 {
   uint32_t t_start = HAL_GetTick();
-  while(!LL_USART_IsActiveFlag_RXNE(USARTx_INSTANCE) && HAL_GetTick()-t_start<TIMEOUT0);
+  while(!LL_USART_IsActiveFlag_RXNE(USARTx_INSTANCE) && HAL_GetTick()-t_start<USARTx_TIMEOUT0);
   if(LL_USART_IsActiveFlag_RXNE(USARTx_INSTANCE)){
     return LL_USART_ReceiveData8(USARTx_INSTANCE);
   }else{
@@ -72,12 +66,12 @@ int UART_RxByte()
 int UART_RxBytes(uint8_t *pBuf, uint32_t size)
 {
   uint8_t *p = pBuf;
-  uint32_t ts_timeout = HAL_GetTick()+TIMEOUT0;
+  uint32_t ts_timeout = HAL_GetTick()+USARTx_TIMEOUT0;
   while(size--){
     while(!LL_USART_IsActiveFlag_RXNE(USARTx_INSTANCE) && HAL_GetTick()<ts_timeout);
     if(LL_USART_IsActiveFlag_RXNE(USARTx_INSTANCE)){
       *p++ = LL_USART_ReceiveData8(USARTx_INSTANCE);
-      ts_timeout = HAL_GetTick() + TIMEOUT1;
+      ts_timeout = HAL_GetTick() + USARTx_TIMEOUT1;
     }else{
       break;
     }
@@ -102,3 +96,4 @@ void UART_Wait_TXE_TC()
 {
   while((!LL_USART_IsActiveFlag_TXE(USARTx_INSTANCE)) || (!LL_USART_IsActiveFlag_TC(USARTx_INSTANCE)));
 }
+#endif

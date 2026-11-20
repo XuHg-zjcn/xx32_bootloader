@@ -21,6 +21,7 @@
 #include "py32f003x8.h"
 #include "operations.h"
 #include "main.h"
+#include "config.h"
 
 #define FLASH_END1  (FLASH_END + 1)
 #define SRAM_END1   (SRAM_END + 1)
