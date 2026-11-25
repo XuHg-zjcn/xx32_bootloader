@@ -80,7 +80,7 @@ class ReadMemResponse(ModbusResponse):
         self.data = data
     
     def encode(self):
-        return struct.pack('>B', self.size) + self.values
+        return struct.pack('>B', self.size) + self.data
 
     def decode(self, data):
         """ Decodes response pdu
@@ -94,6 +94,7 @@ class ReadMemResponse(ModbusResponse):
         
 class WriteMemRequest(ModbusRequest):
     function_code = 0x43
+    _rtu_byte_count_pos = 7
 
     def __init__(self, addr, data):
         super().__init__()
@@ -105,9 +106,9 @@ class WriteMemRequest(ModbusRequest):
         return struct.pack('>IH', self.addr, self.size) + self.data
 
     def decode(self, data):
-        self.addr, self.size = struct.unpack('>IB', data[:5])
-        assert len(data) == self.size + 5
-        self.data = data[5:]
+        self.addr, self.size = struct.unpack('>IH', data[:6])
+        assert len(data) == self.size + 6
+        self.data = data[6:]
 
 
 class WriteMemResponse(ModbusResponse):
@@ -125,7 +126,6 @@ class WriteMemResponse(ModbusResponse):
             struct.pack('<I', self.crc32)
 
     def decode(self, data):
-        print(data)
         self.addr, self.size = struct.unpack('>IH', data[:6])
         self.crc32, = struct.unpack('<I', data[6:])
         

@@ -26,9 +26,12 @@ ERR_RXFMT = -2    # Recvied data format error
 ERR_MBERR = -100  # -Modbus Exception code
 
 crc32_calc = crcmod.predefined.mkPredefinedCrcFun('crc-32-mpeg')
-def crc32_hw(data):
+def crc32_mcu_hw(data):
+    # 计算MCU硬件CRC32预计结果
     if len(data)%4 != 0:
+        # 非整4字节尾部填充0
         data += b'\x00'*(4 - len(data)%4)
+    # 4字节大小端反转
     data_rev = bytes(functools.reduce(lambda a,b:a+b, zip(data[3::4],data[2::4],data[1::4],data[0::4])))
     return crc32_calc(data_rev)
 
@@ -41,6 +44,7 @@ class Device:
     def read_mem(self, start_addr, length):
         if start_addr < 0 or start_addr > 0xffffffff:
             raise ValueError
+        # 256(MAX ADU SIZE)-1(MBADDR)-1(FNCODE)-1(BYTECOUNT)-2(CRC)=251(MAX DATA SIZE)
         if length <= 0 or length > 251:
             raise ValueError
         request = customreq.ReadMemRequest(start_addr, length)
@@ -65,13 +69,14 @@ class Device:
     def write_mem(self, start_addr, data):
         if start_addr < 0 or start_addr > 0xffffffff:
             raise ValueError
-        if len(data) == 0 or len(data) > 247 or len(data) % 4 != 0:
+        # 256(MAX ADU SIZE)-1(MBADDR)-1(FNCODE)-4(MEMADDR)-2(BYTECOUNT)-2(CRC)=246(MAX DATA SIZE)
+        if len(data) == 0 or len(data) > 246 or len(data) % 4 != 0:
             raise ValueError
         request = customreq.WriteMemRequest(start_addr, data)
         request.slave_id = self.device_id
         result = self.client.execute(request)
         pack = struct.pack(b'<BB', self.device_id, request.function_code) + request.encode()
-        expect_crc32 = crc32_hw(pack)
+        expect_crc32 = crc32_mcu_hw(pack)
         if not isinstance(result, customreq.WriteMemResponse):
             return -1
         if result.addr != start_addr:

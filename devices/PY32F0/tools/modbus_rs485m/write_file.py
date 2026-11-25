@@ -27,7 +27,8 @@ DEVICE_MBADDR = 0x01
 PAGE_SIZE = 128
 MAX_TRYS = 10
 
-pymodbus.logging.pymodbus_apply_logging_config("DEBUG")
+#移除以下注释显示pymodbus调试信息
+#pymodbus.logging.pymodbus_apply_logging_config("DEBUG")
 
 if __name__ == '__main__':
     filename = sys.argv[1]
@@ -47,8 +48,9 @@ if __name__ == '__main__':
     client.connect()
     dev = device.Device(client, device_id=DEVICE_MBADDR)
 
-    erase_start = math.floor((addr_start)/PAGE_SIZE)*PAGE_SIZE
-    erase_stop = math.ceil((addr_stop)/PAGE_SIZE)*PAGE_SIZE
+    # 擦除区域需要128字节对齐，进行向前后扩展，擦除区域会完全覆盖待写入区域
+    erase_start = math.floor(addr_start/PAGE_SIZE)*PAGE_SIZE
+    erase_stop = math.ceil(addr_stop/PAGE_SIZE)*PAGE_SIZE
     erase_length = erase_stop - erase_start
     print(f'需擦除0x{erase_start:08x}-0x{erase_stop:08x}, {erase_length//PAGE_SIZE}个页,每页{PAGE_SIZE}字节')
 
@@ -70,6 +72,11 @@ if __name__ == '__main__':
             for i in range(MAX_TRYS):
                 code = dev.write_mem(addr, data)
                 if code != 0:
+                    #TODO: 改进写入失败的错误处理
+                    # 先读取这块数据
+                    # 如果全1则再次尝试写入
+                    # 如果数据相同，无需重新写入
+                    # 如果数据不同，则需要擦除后重新写入
                     print(f'写入失败 {code} 0x{addr:08x}')
                 else:
                     break

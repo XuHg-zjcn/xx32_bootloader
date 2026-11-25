@@ -20,7 +20,8 @@ import pymodbus
 from pymodbus.client import ModbusSerialClient
 import device
 
-pymodbus.logging.pymodbus_apply_logging_config("DEBUG")
+#移除以下注释显示pymodbus调试信息
+#pymodbus.logging.pymodbus_apply_logging_config("DEBUG")
 
 DEVICE_MBADDR = 0x01
 
@@ -32,10 +33,12 @@ client = ModbusSerialClient('/dev/ttyUSB0',
 client.connect()
 dev = device.Device(client, device_id=DEVICE_MBADDR)
 
+# 从0x08000000开始读取128个字节
 data = dev.read_mem(0x08000000, 128)
 if isinstance(data, bytes):
     print('成功读取到数据')
     print(f'长度 {len(data)}')
     print(data.hex())
 else:
+    print('读取失败')
     print(data)

@@ -72,6 +72,7 @@ void Op_EraseFlash(uint32_t addr, uint32_t size)
   HAL_FLASH_Lock();
 }
 
+//pbuff非4字节对齐会出错
 void Op_WriteFlash(uint32_t addr, const uint8_t *pbuff, uint32_t size)
 {
   if((addr & 0x7f) != 0){ //地址必须对齐到Page(128字节)
@@ -90,6 +91,7 @@ void Op_WriteFlash(uint32_t addr, const uint8_t *pbuff, uint32_t size)
   HAL_FLASH_Lock();
 }
 
+//写入Flash时pbuff必须4字节对齐
 void Op_WriteMemFlash(uint32_t addr, const uint8_t *pbuff, uint32_t size)
 {
   if((addr & 0xff000000) == 0x08000000){
