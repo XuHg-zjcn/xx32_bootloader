@@ -25,10 +25,16 @@
 #define BOOT_MODE          (BOOT_ENTRY_WAIT) //请选择启动方式
 #define MAIN_PROGRAM_ADDR  (0x08001000) //主程序地址
 
-#define INTERFACE_USE_SWITCHABLE 1  //使用可切换接口
-#define INTERFACE_USE_UART       1  //开启UART接口
+#define INTERFACE_USE_SWITCHABLE 0  //使用可切换接口
+#define INTERFACE_USE_UART       0  //开启UART接口
 #define INTERFACE_USE_RS485M     1  //开启经编码的RS485接口
 //TODO: 添加SPI, I2C, USB, CAN等接口支持，尽量兼容STM32标准
+
+//目前只支持2选1
+#define PROTOL_STM32   0
+#define PROTOL_MODBUS  1
+
+#define MODBUS_ADDR    (0x01)
 
 #if INTERFACE_USE_UART
 #define USARTx_INSTANCE     (USART1)

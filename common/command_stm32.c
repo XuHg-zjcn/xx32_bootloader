@@ -18,6 +18,7 @@
 #include "command_stm32.h"
 #include "operations.h"
 #include "interface.h"
+#include "misc.h"
 
 #define CMD_GET          (0x00)
 #define CMD_GET_VRPV     (0x01)
@@ -36,8 +37,8 @@
 #define NACK             (0x1F)
 #define IsRDP()          (0)
 
-const uint8_t bl_ver = 0x01;  //自定义版本，用于测试
-const uint16_t pid = 0x0440;  //STM32F10xxx 小容量
+extern const uint8_t bl_ver;
+extern const uint16_t pid;
 
 #define RXBYTE                IF_RXBYTE
 #define RXBYTES_TIMEOUT       IF_RXBYTES
@@ -69,20 +70,10 @@ int recv_data_and_cs(int size, uint8_t *pBuf, uint8_t init_cs)
   }
 }
 
-uint32_t read_32b_bigend(uint8_t *p)
-{
-  uint32_t data = 0;
-  data |= (p[0]<<24);
-  data |= (p[1]<<16);
-  data |= (p[2]<<8);
-  data |= p[3];
-  return data;
-}
-
 //此函数依赖cmdlist
-void cmdfunc_get();
+static void cmdfunc_get();
 
-void cmdfunc_get_vrpv()
+static void cmdfunc_get_vrpv()
 {
   TXBYTE(ACK);
   TXBYTE(bl_ver);
@@ -91,7 +82,7 @@ void cmdfunc_get_vrpv()
   TXBYTE(ACK);
 }
 
-void cmdfunc_get_id()
+static void cmdfunc_get_id()
 {
   TXBYTE(ACK);
   TXBYTE(1);
@@ -100,7 +91,7 @@ void cmdfunc_get_id()
   TXBYTE(ACK);
 }
 
-void cmdfunc_read_mem()
+static void cmdfunc_read_mem()
 {
   uint32_t addr, size;
   //检查读保护
@@ -127,7 +118,7 @@ void cmdfunc_read_mem()
   TXBYTES(buff, size);
 }
 
-void cmdfunc_go()
+static void cmdfunc_go()
 {
   uint32_t addr;
   if(IsRDP()){
@@ -148,7 +139,7 @@ void cmdfunc_go()
   }
 }
 
-void cmdfunc_write_mem()
+static void cmdfunc_write_mem()
 {
   uint32_t addr;
   //检查读保护
@@ -174,7 +165,7 @@ void cmdfunc_write_mem()
   TXBYTE(ACK);
 }
 
-void cmdfunc_erase_mem()
+static void cmdfunc_erase_mem()
 {
   if(IsRDP()){
     TXBYTE(NACK);
@@ -192,13 +183,13 @@ void cmdfunc_erase_mem()
       return;
     }
     for(int i=0;i<=count;i++){
-      Op_EraseFlash(0x08000000+((uint32_t)(buff[i]))*1024);
+      Op_EraseFlash(0x08000000+((uint32_t)(buff[i]))*1024, 1024);
     }
     TXBYTE(ACK);
   }
 }
 
-const cmditem cmdlist[] = {
+static const cmditem cmdlist[] = {
   {CMD_GET,       cmdfunc_get},
   {CMD_GET_VRPV,  cmdfunc_get_vrpv},
   {CMD_GET_ID,    cmdfunc_get_id},
@@ -208,7 +199,7 @@ const cmditem cmdlist[] = {
   {CMD_ERASE,     cmdfunc_erase_mem}
 };
 
-void cmdfunc_get()
+static void cmdfunc_get()
 {
   TXBYTE(ACK);
   TXBYTE(sizeof(cmdlist)/sizeof(cmdlist[0]));

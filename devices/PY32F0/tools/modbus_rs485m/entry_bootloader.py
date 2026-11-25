@@ -18,12 +18,21 @@
 # 使用本程序需要py32_rs485_convert转换模块，进行UART与编码RS485转换
 # 目标MCU上电前开始运行本程序，多次发送命令，使bootloader程序不要跳转到主程序
 import serial
+import crcmod
+import struct
 
-s = serial.Serial('/dev/ttyUSB0', 250000, timeout=0.02)
+MBADDR = 0x01
 
-while True:
-    s.write(b'\x00\xff')
-    a = s.read(10)
-    if len(a) >= 4:
-        print(a)
-        break
+if __name__ == '__main__':
+  calc = crcmod.predefined.mkPredefinedCrcFun('Modbus')
+  s = serial.Serial('/dev/ttyUSB0', 250000, timeout=0.05)
+
+  pack = b'\x01\x42\x08\x00\x00\x00\x04'
+  pack += struct.pack('<H', calc(pack))
+
+  while True:
+      s.write(pack)
+      a = s.read(256)
+      if len(a) >= 4:
+          print(a.hex())
+          break

@@ -34,6 +34,7 @@
 #include "uart.h"
 #include "rs485.h"
 #include "command_stm32.h"
+#include "command_modbus.h"
 #include "py32f0xx_ll_rcc.h"
 #include "py32f0xx_ll_utils.h"
 #include "py32f0xx_ll_system.h"
@@ -45,6 +46,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+const uint8_t bl_ver = 0x01;  //自定义版本，用于测试
+const uint16_t pid = 0x0440;  //STM32F10xxx 小容量
+
 #if INTERFACE_USE_SWITCHABLE
 CmdIntface *pcmdif;
 extern CmdIntface cmdintface_uart;
@@ -82,7 +86,15 @@ int main(void)
   int CmdRx = 0;
   while (1)
   {
-    if(command_stm32_proc() >= 0){
+    int retval;
+#if PROTOL_STM32 && (!PROTOL_MODBUS)
+    retval = command_stm32_proc();
+#elif (!PROTOL_STM32) && PROTOL_MODBUS && INTERFACE_USE_RS485M
+    retval = command_modbus_proc();
+#else
+#error unsupport mode
+#endif
+    if(retval >= 0){
       CmdRx = 1;
     }
 #if (BOOT_MODE == BOOT_ENTRY_WAIT)

@@ -45,9 +45,9 @@
 #include "py32f0xx_ll_flash.h"
 
 
-void FLASH_PageErase_Block(uint32_t PageAddress, uint32_t count)
+void FLASH_PageErase_Block(uint32_t PageAddress, uint32_t size)
 {
-  uint32_t Address_end = PageAddress + 128U*count;
+  uint32_t Address_end = PageAddress + size;
   while((PageAddress < Address_end)){
     while(LL_FLASH_IsActiveFlag_BUSY(FLASH)==1);
     LL_FLASH_EnablePageErase(FLASH);
